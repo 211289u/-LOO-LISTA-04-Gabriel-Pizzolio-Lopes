@@ -1,3 +1,5 @@
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -20,10 +22,11 @@ public class SistemaEscola {
             System.out.println("5. Remover Aluno da Turma");
             System.out.println("6. Listar Alunos da Turma");
             System.out.println("7. Remover todos alunos de uma turma");
+            System.out.println("8. Cadastrar turmas a partir de um arquivo");
             System.out.println("9. Sair");
             System.out.print("Escolha uma opção: ");
             opcao = scanner.nextInt();
-            scanner.nextLine();  
+            scanner.nextLine();
 
             switch (opcao) {
                 case 1:
@@ -47,6 +50,9 @@ public class SistemaEscola {
                 case 7:
                     removerTodosAlunosDaTurma();
                     break;
+                case 8:
+                    cadastrarTurmasPorArquivo();
+                    break;
                 case 9:
                     System.out.println("Saindo do sistema...");
                     break;
@@ -59,13 +65,13 @@ public class SistemaEscola {
     public <T> T buscarComando(String textoComando, List<T> lista, Function<T, String> keyExtractor) {
         System.out.print(textoComando);
         String input = scanner.nextLine();
-        
+
         for (T item : lista) {
             if (keyExtractor.apply(item).equals(input)) {
                 return item;
             }
         }
-        return null; 
+        return null;
     }
 
     public Aluno buscarAlunoCmd(String textoComando) {
@@ -150,9 +156,41 @@ public class SistemaEscola {
         System.out.println("Você tem certeza que deseja remover todos alunos da turma? \n1. Sim\n2. Não");
         int confirmacaoAcao = scanner.nextInt();
         scanner.nextLine();
-        if(confirmacaoAcao == 1){
+        if (confirmacaoAcao == 1) {
             Turma turma = buscarTurmaCmd("Digite o código da turma que deseja remover todos alunos: ");
             turma.removerTodos();
+        }
+    }
+
+    public void cadastrarTurmasPorArquivo() throws FileNotFoundException {
+        System.out.print("Digite o nome do arquivo (Exemplo: listaTurmas.csv): ");
+        String nomeArquivo = scanner.nextLine();
+
+        File arquivo = new File(nomeArquivo);
+        if (!arquivo.exists()) {
+            System.out.println("Arquivo não encontrado. Verifique o nome e tente novamente.");
+            return;
+        }
+
+        try (Scanner leitorArquivo = new Scanner(arquivo)) {
+            while (leitorArquivo.hasNextLine()) {
+                String linha = leitorArquivo.nextLine();
+                String[] dadosTurma = linha.split(",");
+
+                if (dadosTurma.length == 2) {
+                    String nome = dadosTurma[0].trim();
+                    String codigo = dadosTurma[1].trim();
+
+                    Turma turma = new Turma(nome, codigo);
+                    turmasCadastradas.add(turma);
+                    System.out.println("Turma " + nome + " cadastrada com sucesso.");
+                } else {
+                    System.out.println("Formato de linha inválido: " + linha);
+                }
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("Erro ao abrir o arquivo: " + e.getMessage());
+            throw e;
         }
     }
 }
